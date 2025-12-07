@@ -1,0 +1,13 @@
+*/__pycache__/
+
+*.iml
+.idea/
+.venv/
+venv/
+
+logs/*
+*.log
+
+tinytuya_scan_results/
+
+####### END OF FILE #########
