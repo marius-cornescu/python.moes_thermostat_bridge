@@ -4,6 +4,8 @@ This repository contains a small utility to interact with local Tuya-based therm
 
 ## SETUP
 
+Based on the TinyTuya project: https://github.com/jasonacox/tinytuya
+
 ```powershell
 python -m tinytuya scan
 ```

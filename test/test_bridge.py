@@ -55,7 +55,6 @@ def mqtt_service(mock_mqtt_client, moes_thermo) -> MqttClient:
                       topic_root=f'home/hvac/thermostat/{moes_thermo.name}',
                       client=mock_mqtt_client)
 
-
 # ***************************************************************************************
 def test_bridge_get_access_token(moes_thermo, mqtt_service):
     # given
