@@ -26,17 +26,15 @@ class Tuya2MqttBridge(object):
     tuya_device: Final[MoesBhtThermostat]
     mqtt_client: Final[MqttClient]
 
-    def start(self):
+    def start(self, max_iterations: int = 0):
         logging.getLogger(__name__).debug(f'Start Tuya[{self.tuya_device.name}] <=> Mqtt[{self.mqtt_client.name}] bridge')
 
         register_on_exit_action(lambda: self.mqtt_client.loop_stop())
 
-        self.tuya_device.connect()
-        # self.tuya_device.start_monitoring(max_iterations=20)
-        self.tuya_device.start_monitoring()
-
-
         # self.mqtt_client.loop_start()
+
+        self.tuya_device.connect()
+        self.tuya_device.start_monitoring(max_iterations=max_iterations)
 
     def to_tuya_callback(self):
         logging.getLogger(__name__).debug(f'Received action for Tuya device [{self.tuya_device.name}]')
