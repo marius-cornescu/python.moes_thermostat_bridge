@@ -39,7 +39,7 @@ class MqttClient(object):
 
     topic_root: Final[str]
 
-    def __init__(self, name:str, broker_address:str, broker_port: int, username: str, password: str, tls_cert_path:str, topic_root: str = 'home/tuya2mqtt_bridge',
+    def __init__(self, name:str, broker_address:str, broker_port: int, username: str, password: str, tls_cert_path:str|None, topic_root: str = 'home/tuya2mqtt_bridge',
                  client: mqtt.Client | None = None):
         self.name = name
 
@@ -61,16 +61,16 @@ class MqttClient(object):
         self._callback_mutex = threading.RLock()
         self._on_callback: MqttCallbackOnMessage | None = None
 
-    def __setup_client(self, username: str, password: str, tls_cert_path:str) -> mqtt.Client:
-        logging.getLogger(__name__).debug(f'Setup mqtt client [{self.name}]')
+    def __setup_client(self, username: str, password: str, tls_cert_path:str|None) -> mqtt.Client:
+        logging.getLogger(__name__).debug(f'Setup mqtt client [{self.name}] with user [{username}]')
         # Create an MQTT client instance
         client = mqtt.Client()
 
         # Set username and password
         client.username_pw_set(username, password)
 
-        # Enable TLS
-        client.tls_set(tls_cert_path)
+        if tls_cert_path:
+            client.tls_set(tls_cert_path)
 
         return client
 
