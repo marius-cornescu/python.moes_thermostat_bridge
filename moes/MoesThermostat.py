@@ -61,13 +61,15 @@ class MoesBhtThermostat(object):
 
     ping_time: Optional[float] = None
 
-    def __init__(self, name:str, tuya_id:str, local_ip:str, tuya_local_key:str):
+    def __init__(self, name:str, tuya_id:str, local_ip:str, tuya_local_key:str, device: Contrib.ThermostatDevice | None = None):
         self.name = name
         self.tuya_id = tuya_id
         self.local_ip = local_ip
         self.tuya_local_key = tuya_local_key
 
-        self.device = Contrib.ThermostatDevice(tuya_id, local_ip, tuya_local_key, version=3.3)
+        if device is None:
+            device = Contrib.ThermostatDevice(tuya_id, local_ip, tuya_local_key, version=3.3)
+        self.device = device
 
         self.is_synchronized = False
 
