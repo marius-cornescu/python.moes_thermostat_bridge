@@ -26,18 +26,26 @@ def setup_before_any_test(active_config):
     init_logging(active_config)
 
 @pytest.fixture
-def mock_tuya_device() -> ThermostatDevice:
-    # FIXME: return a mock version of the object
-    return None
+def mock_tuya_device(mocker) -> ThermostatDevice:
+    mocker.patch.object(ThermostatDevice, 'sendPing', return_value=None)
+    mocker.patch.object(ThermostatDevice, 'receive', return_value=None)
+    mocker.patch.object(ThermostatDevice, 'status', return_value=None)
+    mocker.patch.object(ThermostatDevice, 'turn_on', return_value=None)
+    mocker.patch.object(ThermostatDevice, 'turn_off', return_value=None)
+    mocker.patch.object(ThermostatDevice, 'set_value', return_value=None)
+
+    return ThermostatDevice('123', '1.1.1.1', '', version=3.3)
 
 @pytest.fixture
 def moes_thermo(mock_tuya_device) -> MoesBhtThermostat:
     return MoesBhtThermostat(name="MOCK-Moes", tuya_id='123', local_ip='1.1.1.1', tuya_local_key='secret_key')
 
 @pytest.fixture
-def mock_mqtt_client() -> mqtt.Client:
-    # FIXME: return a mock version of the object
-    return None
+def mock_mqtt_client(mocker) -> mqtt.Client:
+    mocker.patch.object(mqtt.Client, 'on_connect', return_value=None)
+    mocker.patch.object(mqtt.Client, 'on_message', return_value=None)
+
+    return mqtt.Client()
 
 @pytest.fixture
 def mqtt_service(mock_mqtt_client, moes_thermo) -> MqttClient:
@@ -54,7 +62,7 @@ def test_bridge_get_access_token(moes_thermo, mqtt_service):
     bridge = Tuya2MqttBridge(tuya_device=moes_thermo, mqtt_client=mqtt_service)
 
     # when
-    _ = bridge.start()
+    _ = bridge.start(5)
 
     # then
     assert True
