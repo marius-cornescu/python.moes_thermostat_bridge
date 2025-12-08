@@ -21,6 +21,11 @@ from bridge import MqttCallbackOnMessage
 # TOPIC_PUBLISH = "example/topic"  # Topic to send messages to
 # TLS_CERT_PATH = "/path/to/ca.crt"  # Path to your CA certificate file
 
+# tasmota topics:
+# LWT       = Online / Offline
+# STATE     = json with the entire state
+# COMMAND   = json with commands for the device
+
 ##########################################################################################################
 
 @dataclass
