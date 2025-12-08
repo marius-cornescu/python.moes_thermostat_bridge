@@ -8,10 +8,10 @@ import paho.mqtt.client as mqtt
 from tinytuya.Contrib import ThermostatDevice
 
 import generic.config as config
-from bridge.bridge import Tuya2MqttBridge
 from generic.config_logging import init_logging
+from bridge.bridge import Tuya2MqttBridge
 from moes.MoesThermostat import MoesBhtThermostat
-from mqtt.client import MqttClient
+from mqtt.mqtt_server import MqttClient
 
 
 ##########################################################################################################

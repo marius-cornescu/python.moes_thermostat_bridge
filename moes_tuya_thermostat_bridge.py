@@ -11,7 +11,7 @@ from generic.config import set_active_config
 from generic.config_logging import init_logging
 
 from moes.MoesThermostat import MoesBhtThermostat
-from mqtt.client import MqttClient
+from mqtt.mqtt_server import MqttClient
 
 
 ##########################################################################################################

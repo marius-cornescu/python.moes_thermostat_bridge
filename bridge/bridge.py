@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from generic import register_on_exit_action
 from moes.MoesThermostat import MoesBhtThermostat
-from mqtt.client import MqttClient
+from mqtt.mqtt_server import MqttClient
 
 ##########################################################################################################
 
