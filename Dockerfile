@@ -11,4 +11,4 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the application
-CMD ["python", "moes_tuya_thermostat_bridge.py"]
+CMD ["python", "moes_thermostat_2_mqtt_bridge.py"]
