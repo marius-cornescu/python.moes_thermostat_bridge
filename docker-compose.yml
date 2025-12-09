@@ -4,10 +4,18 @@ version: '3.8'
 services:
   ################################################################################################
   thermostat_2_mqtt_bridge:
-    build: .
+    container_name: thermostat_2_mqtt_bridge
     image: rtzan/thermostat_2_mqtt_bridge:1.0.0
+    restart: "unless-stopped"
     environment:
-      "BRIDGE.TARGET_ENV": "dev"
+      "BRIDGE.TARGET_ENV": "PROD"
+      "BRIDGE.TUYA_DEV_ID": ""
+      "BRIDGE.TUYA_DEV_IP": ""
+      "BRIDGE.TUYA_DEV_LOCAL_KEY": ""
+      "BRIDGE.MQTT_BROKER_ADDR": ""
+      "BRIDGE.MQTT_BROKER_PORT": "8883"
+      "BRIDGE.MQTT_USER": ""
+      "BRIDGE.MQTT_PASSWORD": ""
     volumes:
       - ./:/app:cached
     ports:
