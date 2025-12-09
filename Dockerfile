@@ -1,6 +1,8 @@
 # Use an official Python runtime as a parent image
 FROM python:3.13-alpine
 
+ENV VENV_BASE=/opt/venvs
+
 # Set the working directory
 WORKDIR /app
 
