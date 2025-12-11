@@ -1,5 +1,6 @@
 # Introduction
 This repository contains a small utility to interact with local Tuya-based thermostats.
+The main purpose is to publish and control a tuya based Moe's BHT-002 GALW Thermostat via mqtt, while keeping the Tuya Cloud connection (not using cloud cutter) 
 
 
 ## SETUP
@@ -38,7 +39,7 @@ docker images rtzan/thermostat_2_mqtt_bridge
 
 Run image:
 ```shell
-docker run --rm -e "BRIDGE.TARGET_ENV=prod" -p 18000:18000 rtzan/thermostat_2_mqtt_bridge
+docker run --rm -e "BRIDGE_TARGET_ENV=prod" -p 18000:18000 rtzan/thermostat_2_mqtt_bridge
 ```
 
 
@@ -46,26 +47,29 @@ docker run --rm -e "BRIDGE.TARGET_ENV=prod" -p 18000:18000 rtzan/thermostat_2_mq
 
 Build + run with docker-compose:
 ```shell
+docker compose -f docker-compose.yml up
+```
+```shell
 docker compose up --build
 ```
 
-The compose file sets `BRIDGE.TARGET_ENV=dev` by default. To run the container with the `prod` venv, override at runtime:
+The compose file sets `BRIDGE_TARGET_ENV=dev` by default. To run the container with the `prod` venv, override at runtime:
 
 Using docker compose run:
 ```shell
-docker compose run --rm -e "BRIDGE.TARGET_ENV=prod" app
+docker compose run --rm -e "BRIDGE_TARGET_ENV=prod" app
 ```
 
 Or create an `.env` or use an env-file:
 ```shell
-echo 'BRIDGE.TARGET_ENV=prod' > .env
+echo 'BRIDGE_TARGET_ENV=prod' > .env
 docker compose up --build
 ```
 
-docker run --rm -e "BRIDGE.TARGET_ENV=prod" -p 8000:8000 rtzan/moes_thermostat_2_mqtt_bridge:1.0.0
+docker run --rm -e "BRIDGE_TARGET_ENV=prod" -p 8000:8000 rtzan/moes_thermostat_2_mqtt_bridge:1.0.0
 
 Notes:
-- The entrypoint uses Python to read `BRIDGE.TARGET_ENV` (because variable names with dots are not shell-friendly) and then execs the selected venv's Python interpreter.
+- The entrypoint uses Python to read `BRIDGE_TARGET_ENV` (because variable names with dots are not shell-friendly) and then execs the selected venv's Python interpreter.
 - Venvs are created at image build time at `/opt/venvs/dev` and `/opt/venvs/prod`. Add packages to `requirements.txt` before building to have them installed into both venvs.
 
 

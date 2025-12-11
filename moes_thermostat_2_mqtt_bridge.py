@@ -13,12 +13,6 @@ from generic import setup_cleanup_on_exit, callback_on_exit
 
 
 def main():
-    class Args:
-        """Custom class to hold application arguments."""
-
-        def __init__(self, **kwargs):
-            for key, value in kwargs.items():
-                setattr(self, key, value)
 
     def get_env_variable(name, default=None, var_type=str):
         """Helper function to get environment variables with type conversion."""
@@ -30,31 +24,22 @@ def main():
                 raise ValueError(f"Environment variable [{name}] must be of type [{var_type.__name__}]")
         return value
 
-    # Read environment variables
-    target_env = get_env_variable('BRIDGE.TARGET_ENV', var_type=str)
-    tuya_dev_id = get_env_variable('BRIDGE.TUYA_DEV_ID', var_type=str)
-    tuya_dev_ip = get_env_variable('BRIDGE.TUYA_DEV_IP', var_type=str)
-    tuya_dev_local_key = get_env_variable('BRIDGE.TUYA_DEV_LOCAL_KEY', var_type=str)
-    mqtt_broker_addr = get_env_variable('BRIDGE.MQTT_BROKER_ADDR', var_type=str)
-    mqtt_broker_port = get_env_variable('BRIDGE.MQTT_BROKER_PORT', default=8883, var_type=int)
-    mqtt_user = get_env_variable('BRIDGE.MQTT_USER', var_type=str)
-    mqtt_password = get_env_variable('BRIDGE.MQTT_PASSWORD', var_type=str)
-    mqtt_tls_path = get_env_variable('BRIDGE.MQTT_TLS_PATH', var_type=str)
-    static_data = get_env_variable('BRIDGE.STATIC_DATA', default=False, var_type=bool)
-
-    # Pass the arguments to the app
     args = argparse.Namespace(
-        target_env=target_env,
-        tuya_dev_id=tuya_dev_id,
-        tuya_dev_ip=tuya_dev_ip,
-        tuya_dev_local_key=tuya_dev_local_key,
-        mqtt_broker_addr=mqtt_broker_addr,
-        mqtt_broker_port=mqtt_broker_port,
-        mqtt_user=mqtt_user,
-        mqtt_password=mqtt_password,
-        mqtt_tls_path=mqtt_tls_path,
-        static_data=static_data,
+        target_env=get_env_variable('BRIDGE_TARGET_ENV', var_type=str),
+        tuya_dev_id=get_env_variable('BRIDGE_TUYA_DEV_ID', var_type=str),
+        tuya_dev_ip=get_env_variable('BRIDGE_TUYA_DEV_IP', var_type=str),
+        tuya_dev_local_key=get_env_variable('BRIDGE_TUYA_DEV_LOCAL_KEY', var_type=str),
+        mqtt_broker_addr=get_env_variable('BRIDGE_MQTT_BROKER_ADDR', var_type=str),
+        mqtt_broker_port=get_env_variable('BRIDGE_MQTT_BROKER_PORT', default=8883, var_type=int),
+        mqtt_user=get_env_variable('BRIDGE_MQTT_USER', var_type=str),
+        mqtt_password=get_env_variable('BRIDGE_MQTT_PASSWORD', var_type=str),
+        mqtt_tls_path=get_env_variable('BRIDGE_MQTT_TLS_PATH', var_type=str),
+        static_data=get_env_variable('BRIDGE_STATIC_DATA', default=False, var_type=bool),
     )
+
+    args.app_name = os.path.splitext(os.path.basename(__file__))[0]
+    args.tuya_dev_name="BHT-002-GALW"
+    args.mqtt_broker_name="MQTT"
 
     app.run_app(args)
 

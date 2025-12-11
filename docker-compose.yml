@@ -5,17 +5,18 @@ services:
   ################################################################################################
   thermostat_2_mqtt_bridge:
     container_name: thermostat_2_mqtt_bridge
-    image: rtzan/thermostat_2_mqtt_bridge:1.0.0
+    image: rtzan/thermostat_2_mqtt_bridge:${IMAGE_TAG}
     restart: "unless-stopped"
     environment:
-      "BRIDGE.TARGET_ENV": "PROD"
-      "BRIDGE.TUYA_DEV_ID": ""
-      "BRIDGE.TUYA_DEV_IP": ""
-      "BRIDGE.TUYA_DEV_LOCAL_KEY": ""
-      "BRIDGE.MQTT_BROKER_ADDR": ""
-      "BRIDGE.MQTT_BROKER_PORT": "8883"
-      "BRIDGE.MQTT_USER": ""
-      "BRIDGE.MQTT_PASSWORD": ""
+      "BRIDGE_TARGET_ENV": "${BRIDGE_TARGET_ENV:-DEV}"
+      "BRIDGE_TUYA_DEV_ID": "${BRIDGE_TUYA_DEV_ID}"
+      "BRIDGE_TUYA_DEV_IP": "${BRIDGE_TUYA_DEV_IP}"
+      "BRIDGE_TUYA_DEV_LOCAL_KEY": "${BRIDGE_TUYA_DEV_LOCAL_KEY}"
+      "BRIDGE_MQTT_BROKER_ADDR": "${BRIDGE_MQTT_BROKER_ADDR}"
+      "BRIDGE_MQTT_BROKER_PORT": "${BRIDGE_MQTT_BROKER_PORT:-8883}"
+      "BRIDGE_MQTT_USER": "${BRIDGE_MQTT_USER}"
+      "BRIDGE_MQTT_PASSWORD": "${BRIDGE_MQTT_PASSWORD}"
+      "BRIDGE_MQTT_TLS_PATH": "${BRIDGE_MQTT_TLS_PATH}"
     volumes:
       - ./:/app:cached
     ports:
