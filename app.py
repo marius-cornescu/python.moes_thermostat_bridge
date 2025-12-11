@@ -35,7 +35,7 @@ def run_app(args: argparse.Namespace):
                              broker_address=args.mqtt_broker_addr, broker_port=args.mqtt_broker_port,
                              username=args.mqtt_user, password=args.mqtt_password,
                              tls_cert_path=args.mqtt_tls_path,
-                             topic_root=f'home/hvac/thermostat/{thermostat.name}')
+                             topic_root=args.mqtt_topic_root)
 
     logging.info('')
     logging.info('<< END: Mqtt SERVICE: Setup <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
@@ -55,10 +55,13 @@ def log_startup_data(args: argparse.Namespace):
         '=================================================================\n'
         f'TUYA: [{args.tuya_dev_name}]:\n'
         f' * id = [{args.tuya_dev_id}] / ip = [{args.tuya_dev_ip}]\n'
+        f' * local key = [{"*" * len(args.tuya_dev_local_key)}]\n'
         f'<<<<<<--------------------------------------->>>>>>\n'
         f'MQTT: [{args.mqtt_broker_name}]:\n'
         f' * addr = [{args.mqtt_broker_addr}]:[{args.mqtt_broker_port}]\n'
-        f' * user = [{args.mqtt_user}]\n'
+        f' * auth = [{args.mqtt_user}]/[{"*" * len(args.mqtt_password)}]\n'
+        f' * tls file = [{args.mqtt_tls_path if args.mqtt_tls_path else "NONE"}]\n'
+        f' * topic root = [{args.mqtt_topic_root}]\n'
         '=================================================================\n'
     )
 

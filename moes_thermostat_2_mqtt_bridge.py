@@ -40,6 +40,7 @@ def main():
     args.app_name = os.path.splitext(os.path.basename(__file__))[0]
     args.tuya_dev_name="BHT-002-GALW"
     args.mqtt_broker_name="MQTT"
+    args.mqtt_topic_root=f'home/hvac/thermostat/{args.tuya_dev_name}'
 
     app.run_app(args)
 

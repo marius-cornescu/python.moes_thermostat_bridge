@@ -20,27 +20,27 @@ def main():
         '--target_env', metavar='target_env', type=str,
         help='target environment (TEST/PROD)')
 
-    parser.add_argument('--tuya_dev_id', type=str,
+    parser.add_argument('--tuya_dev_id', type=str, required=True,
                         help='Tuya: device id')
 
-    parser.add_argument('--tuya_dev_ip', type=str,
+    parser.add_argument('--tuya_dev_ip', type=str, required=True,
                         help='Tuya: device ip address')
 
-    parser.add_argument('--tuya_dev_local_key', type=str,
+    parser.add_argument('--tuya_dev_local_key', type=str, required=True,
                         help='Tuya: device local key')
 
-    parser.add_argument('--mqtt_broker_addr', type=str,
+    parser.add_argument('--mqtt_broker_addr', type=str, required=True,
                         help='Mqtt: server address')
 
     parser.add_argument('--mqtt_broker_port', type=int, default=8883,
                         help='Mqtt: server port')
 
-    parser.add_argument('--mqtt_user', type=str,
+    parser.add_argument('--mqtt_user', type=str, required=True,
                         help='Mqtt: server user name')
-    parser.add_argument('--mqtt_password', type=str,
+    parser.add_argument('--mqtt_password', type=str, required=True,
                         help='Mqtt: server password')
 
-    parser.add_argument('--mqtt_tls_path', type=str,
+    parser.add_argument('--mqtt_tls_path', type=str, required=False,
                         help='Mqtt: Path to the tls certificate used by the server')
 
     parser.add_argument("--static_data", nargs='?', type=bool,
@@ -51,6 +51,7 @@ def main():
     args.app_name = os.path.splitext(os.path.basename(__file__))[0]
     args.tuya_dev_name="BHT-002-GALW"
     args.mqtt_broker_name="MQTT"
+    args.mqtt_topic_root=f'home/hvac/thermostat/{args.tuya_dev_name}'
 
     app.run_app(args)
 

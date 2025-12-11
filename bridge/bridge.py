@@ -30,7 +30,7 @@ class Tuya2MqttBridge(object):
         logging.getLogger(__name__).debug(f'Start Tuya[{self.tuya_device.name}] <=> Mqtt[{self.mqtt_client.name}] bridge')
 
         register_on_exit_action(lambda: self.mqtt_client.loop_stop())
-        # self.mqtt_client.loop_start()
+        self.mqtt_client.loop_start()
 
         self.tuya_device.connect()
         self.tuya_device.start_monitoring(max_iterations=max_iterations)

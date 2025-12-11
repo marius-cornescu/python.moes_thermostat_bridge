@@ -3,12 +3,16 @@ from typing import Any, Final, Optional, Dict
 import logging
 from dataclasses import dataclass
 
+import json
 import threading
+import traceback
 
 from paho.mqtt.enums import MQTTErrorCode
 import paho.mqtt.client as mqtt
 
 from bridge import MqttCallbackOnMessage
+from bridge import BridgeData
+
 
 ##########################################################################################################
 
@@ -123,8 +127,19 @@ class MqttClient(object):
             logging.getLogger(__name__).debug(f"Connection to [{self.name}] failed with code [{rc}]")
 
     # Callback when a message is received
-    def _on_message(self, client, userdata, msg):
-        logging.getLogger(__name__).debug(f"Received from [{self.name}] message [{msg.payload.decode()}] on topic [{msg.topic}]")
+    def _on_message(self, client, userdata, msg: mqtt.MQTTMessage):
+        logging.getLogger(__name__).debug(f"Received from [{self.name}] on topic [{msg.topic}] from [{userdata}] message: \n{msg.payload.decode()}")
+
+        message_data = {}
+        try:
+            message_data = json.loads(msg.payload)
+        except Exception as e:
+            logging.getLogger(__name__).error(f'Exception [{self.name}]: [%s]', e)
+            traceback.print_exc()
+
+        bridge_data = BridgeData.from_json(message_data)
+
+        logging.getLogger(__name__).debug(f"bridge_data = [{bridge_data}]")
 
     @property
     def topic_root(self) -> str:
