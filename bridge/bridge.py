@@ -48,6 +48,6 @@ class Tuya2MqttBridge(object):
         logging.getLogger(__name__).info(f'Received action from Mqtt service [{self.mqtt_client.name}] data=[{data}]')
 
         # remove readonly params
-        data.pop('home_temperature')
+        data.pop('home_temperature', None)
 
         self.tuya_device.set_state(ThermostatState.from_json(data))
