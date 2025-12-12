@@ -38,7 +38,7 @@ class PRODConfig(Config):
 
     log_file_pattern = 'logs/{timestamp}_{app_name}.log'
 
-    log_level_root = logging.INFO
+    log_level_root = logging.WARNING
     log_level_app = logging.INFO
     log_level_tuya = logging.WARNING
 

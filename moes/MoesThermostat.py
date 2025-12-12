@@ -151,7 +151,7 @@ class MoesBhtThermostat(object):
             logging.getLogger(__name__).warning(f'Maybe connected to device [{self.tuya_id}] IP [{self.local_ip}] | [is_synchronized={self.is_synchronized}]')
 
     def start_monitoring(self, max_iterations: int = 0):
-        logging.getLogger(__name__).info(f"Start monitoring [{self.name}] for [x{max_iterations}]")
+        logging.getLogger(__name__).info(f'Start monitoring [{self.name}] for [x{max_iterations}]')
 
         self.ping_time = self._next_ping_time()
         self.full_status_get_time = time.time() + self.full_status_get_delay_seconds
@@ -274,35 +274,35 @@ class MoesBhtThermostat(object):
         if state_field == 'is_on':
             logging.getLogger(__name__).debug(f'POWER_STATUS = [{metric_value}]')
             self.state_current.is_on = bool(metric_value)
-            logging.getLogger(__name__).info(f'is_on is [{self.state_current.is_on}]')
+            logging.getLogger(__name__).info(f'NEW-STATE: is_on is [{self.state_current.is_on}]')
 
         elif state_field == 'target_temperature':
             logging.getLogger(__name__).debug(f'TARGET_TEMPERATURE = [{metric_value}]')
             self.state_current.target_temperature = round(int(metric_value) / MOES_TEMPERATURE_SCALE, 1)
-            logging.getLogger(__name__).info(f'target_temperature is [{self.state_current.target_temperature}]')
+            logging.getLogger(__name__).info(f'NEW-STATE: target_temperature is [{self.state_current.target_temperature}]')
 
         elif state_field == 'home_temperature':
             logging.getLogger(__name__).debug(f'MEASURED_TEMPERATURE = [{metric_value}]')
             self.state_current.home_temperature = round(int(metric_value) / MOES_TEMPERATURE_SCALE, 1)
-            logging.getLogger(__name__).info(f'home_temperature is [{self.state_current.home_temperature}]')
+            logging.getLogger(__name__).info(f'NEW-STATE: home_temperature is [{self.state_current.home_temperature}]')
 
         elif state_field == 'manual_operating_mode':
             logging.getLogger(__name__).debug(f'OPERATING_MODE = [{metric_value}]')
             self.state_current.manual_operating_mode = (metric_value == '1')
-            logging.getLogger(__name__).info(f'manual_operating_mode is [{self.state_current.manual_operating_mode}]')
+            logging.getLogger(__name__).info(f'NEW-STATE: manual_operating_mode is [{self.state_current.manual_operating_mode}]')
 
         elif state_field == 'eco_mode':
             logging.getLogger(__name__).debug(f'ECO_MODE_ENABLED = [{metric_value}]')
             self.state_current.eco_mode = bool(metric_value)
-            logging.getLogger(__name__).info(f'eco_mode is [{self.state_current.eco_mode}]')
+            logging.getLogger(__name__).info(f'NEW-STATE: eco_mode is [{self.state_current.eco_mode}]')
 
         elif state_field == 'lock_enabled':
             logging.getLogger(__name__).debug(f'LOCK_ENABLED = [{metric_value}]')
             self.state_current.lock_enabled = bool(metric_value)
-            logging.getLogger(__name__).info(f'lock_enabled is [{self.state_current.lock_enabled}]')
+            logging.getLogger(__name__).info(f'NEW-STATE: lock_enabled is [{self.state_current.lock_enabled}]')
 
         else:
-            logging.getLogger(__name__).warning(f'Unknown metric for [{self.name}]: metric=[{state_field}] value=[{metric_value}].')
+            logging.getLogger(__name__).warning(f'NEW-STATE: Unknown metric for [{self.name}]: metric=[{state_field}] value=[{metric_value}].')
             return False
 
         return True
