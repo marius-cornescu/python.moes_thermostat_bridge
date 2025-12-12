@@ -66,7 +66,7 @@ class MoesBht002Thermostat(Contrib.ThermostatDevice):
     __TARGET_TEMPERATURE = 2
     __MEASURED_TEMPERATURE = 3
     __OPERATING_MODE = 4
-    __ECO_MODE_ENABLED = 5
+    __ECO_MODE = 5
     __LOCK_ENABLED = 6
 
     __IGNORE_METRIC1 = 102
@@ -77,20 +77,20 @@ class MoesBht002Thermostat(Contrib.ThermostatDevice):
         __TARGET_TEMPERATURE:   'target_temperature',
         __MEASURED_TEMPERATURE: 'home_temperature',
         __OPERATING_MODE:       'manual_operating_mode',
-        __ECO_MODE_ENABLED:     'eco_mode',
+        __ECO_MODE:             'eco_mode',
         __LOCK_ENABLED:         'lock_enabled',
         __IGNORE_METRIC1:       None,
         __IGNORE_METRIC2:       None,
     }
 
     dps_data = {
-        f'{__TARGET_TEMPERATURE}':   {'name': 'target_temperature', 'alt': 'setpoint_c', 'scale': 2},
-        f'{__MEASURED_TEMPERATURE}': {'name': 'home_temperature', 'alt': 'temperature_c', 'scale': 2},
-        f'{__OPERATING_MODE}':       {'name': 'manual_operating_mode', 'enum': ['0','1']},
-        f'{__ECO_MODE_ENABLED}':     {'name': 'eco_mode', 'decode': bool},
-        f'{__LOCK_ENABLED}':         {'name': 'lock_enabled', 'decode': bool},
-        f'{__IGNORE_METRIC1}':       {'name': 'ignore_1'},
-        f'{__IGNORE_METRIC2}':       {'name': 'ignore_2'}
+        f'{__TARGET_TEMPERATURE}':  {'name': 'target_temperature', 'alt': 'setpoint_c', 'scale': 2},
+        f'{__MEASURED_TEMPERATURE}':{'name': 'home_temperature', 'alt': 'temperature_c', 'scale': 2},
+        f'{__OPERATING_MODE}':      {'name': 'manual_operating_mode', 'enum': ['0','1']},
+        f'{__ECO_MODE}':            {'name': 'eco_mode', 'decode': bool},
+        f'{__LOCK_ENABLED}':        {'name': 'lock_enabled', 'decode': bool},
+        f'{__IGNORE_METRIC1}':      {'name': 'ignore_1'},
+        f'{__IGNORE_METRIC2}':      {'name': 'ignore_2'}
     }
 
     def __init__(self, *args, **kwargs):
