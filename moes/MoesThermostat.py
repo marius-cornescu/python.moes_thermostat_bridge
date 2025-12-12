@@ -127,7 +127,7 @@ class MoesBhtThermostat(object):
     state_previous: ThermostatState
 
     # delay between when a new full status should be retrieved, even if in sync
-    full_status_get_delay_seconds: int = 5 * 60
+    full_status_get_delay_seconds: int = 1 * 60
     # delay between when a new full status should be published
     full_status_publish_delay_seconds: int = 10 * 60
 

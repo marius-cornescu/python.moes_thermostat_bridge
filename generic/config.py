@@ -27,7 +27,7 @@ class Config:
 class DEVConfig(Config):
     debug = True
 
-    log_file_pattern = None
+    log_file_pattern = 'logs/{timestamp}_DEV_{app_name}.log'
 
     log_level_root = logging.DEBUG
     log_level_app = logging.DEBUG
