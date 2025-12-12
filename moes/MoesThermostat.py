@@ -244,7 +244,6 @@ class MoesBhtThermostat(object):
             if had_state_updates and not self.state_current.__eq__(current_state_backup):
                 logging.getLogger(__name__).info(f'State for [{self.name}] updated from [{self.state_previous}] to [{self.state_current}]')
                 self.state_previous = current_state_backup
-                self._apply_state_change()
                 self._handle_on_state_changed()
 
             elif self.full_status_publish_delay_seconds > time.time():
@@ -347,7 +346,8 @@ class MoesBhtThermostat(object):
     def set_state(self, new_state: ThermostatState) -> ThermostatState:
         logging.getLogger(__name__).info(f"Set [{self.name}] [state] to [{new_state}]")
 
-        self._process_data_updates(new_state.__dict__)
+        if self._process_data_updates(new_state.__dict__):
+            self._apply_state_change()
 
         return self.state_current
 
