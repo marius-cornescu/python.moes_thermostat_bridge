@@ -35,6 +35,7 @@ class Tuya2MqttBridge(object):
         register_on_exit_action(lambda: self.mqtt_client.loop_stop())
         self.mqtt_client.loop_start()
 
+        register_on_exit_action(lambda: self.tuya_device.device.close())
         self.tuya_device.connect()
         self.tuya_device.start_monitoring(max_iterations=max_iterations)
         # Tuya monitoring uses the main thread
