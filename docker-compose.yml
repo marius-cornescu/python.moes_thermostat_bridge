@@ -18,8 +18,8 @@ services:
       "BRIDGE_MQTT_PASSWORD": "${BRIDGE_MQTT_PASSWORD}"
       "BRIDGE_MQTT_TLS_PATH": "${BRIDGE_MQTT_TLS_PATH}"
     volumes:
-      - ./:/app
-      - ./volumes/thermostat_2_mqtt_bridge/logs:/app/logs:cached
+      #- ./:/app
+      - ${BRIDGE_LOGS_PATH}:/app/logs:cached
     ports:
       - "18000:18000"
     command: [ "python", "moes_thermostat_2_mqtt_bridge.py" ]
