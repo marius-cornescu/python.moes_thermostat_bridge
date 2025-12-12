@@ -40,12 +40,12 @@ class Tuya2MqttBridge(object):
         # Tuya monitoring uses the main thread
 
     def from_tuya_callback(self, user_data: Any, data: Dict[str, Any]):
-        logging.getLogger(__name__).warning(f'Received action from Tuya device [{self.tuya_device.name}] data=[{data}]')
+        logging.getLogger(__name__).info(f'Received action from Tuya device [{self.tuya_device.name}] data=[{data}]')
 
         self.mqtt_client.publish_state(data)
 
     def from_mqtt_callback(self, user_data: Any, data: Dict[str, Any]):
-        logging.getLogger(__name__).warning(f'Received action from Mqtt service [{self.mqtt_client.name}] data=[{data}]')
+        logging.getLogger(__name__).info(f'Received action from Mqtt service [{self.mqtt_client.name}] data=[{data}]')
 
         # remove readonly params
         data.pop('home_temperature')
