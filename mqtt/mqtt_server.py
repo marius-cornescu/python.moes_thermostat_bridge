@@ -63,6 +63,7 @@ class MqttClient(object):
         self.topic_root = topic_root
 
         self._callback_mutex = threading.RLock()
+        self._in_callback_mutex = threading.Lock()
         self._on_callback: MqttCallbackOnMessage | None = None
 
     def __setup_client(self, username: str, password: str, tls_cert_path:str|None) -> mqtt.Client:
@@ -85,7 +86,7 @@ class MqttClient(object):
         self.is_connected = (response == MQTTErrorCode.MQTT_ERR_SUCCESS)
 
         if self.is_connected:
-            logging.getLogger(__name__).info(f'Successfully connected to [{self.name}] on [{self.broker_address}:{self.broker_port}]')
+            logging.getLogger(__name__).info(f'Connected to [{self.name}] on [{self.broker_address}:{self.broker_port}]')
         else:
             logging.getLogger(__name__).error(f'Failed to connect [{self.name}] on [{self.broker_address}:{self.broker_port}] | response code [{response}]')
 
@@ -115,6 +116,9 @@ class MqttClient(object):
             self.client.publish(topic, payload)
             logging.getLogger(__name__).debug(f'Published to [{self.name}] message [{payload}] on topic [{topic}].')
 
+    def publish_state(self, data: Dict[str, Any]):
+        logging.getLogger(__name__).debug(f'Publishing state to [{self.name}] data=[{data}]')
+        self.publish(topic=self.topic_status, payload=json.dumps(data))
 
     # Callback when the client connects to the broker
     def _on_connect(self, client, userdata, flags, rc):
@@ -130,16 +134,26 @@ class MqttClient(object):
     def _on_message(self, client, userdata, msg: mqtt.MQTTMessage):
         logging.getLogger(__name__).debug(f"Received from [{self.name}] on topic [{msg.topic}] from [{userdata}] message: \n{msg.payload.decode()}")
 
-        message_data = {}
         try:
             message_data = json.loads(msg.payload)
+            self._handle_on_state_changed(message_data)
         except Exception as e:
-            logging.getLogger(__name__).error(f'Exception [{self.name}]: [%s]', e)
-            traceback.print_exc()
+            logging.getLogger(__name__).warning(f'Exception [{self.name}][ _on_message] while parsing json message: [%s]', e)
+            if logging.getLogger(__name__).isEnabledFor(logging.ERROR):
+                traceback.print_exc()
 
-        bridge_data = BridgeData.from_json(message_data)
+    def _handle_on_state_changed(self, state_current: Dict[str, Any]) -> None:
+        with self._callback_mutex:
+            on_callback = self.on_callback
 
-        logging.getLogger(__name__).debug(f"bridge_data = [{bridge_data}]")
+        if on_callback:
+            with self._in_callback_mutex:
+                try:
+                    on_callback(self, state_current)
+                except Exception as e:
+                    logging.getLogger(__name__).error(f'Exception [{self.name}][_handle_on_state_changed]: [%s]', e)
+                    if logging.getLogger(__name__).isEnabledFor(logging.ERROR):
+                        traceback.print_exc()
 
     @property
     def topic_root(self) -> str:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from typing import Dict, List, Any
 import sys
 import signal
 import atexit
@@ -44,6 +45,41 @@ def register_on_exit_action(on_exit_action):
     print("Registering on_exit action.")
     on_exit_calls.append(on_exit_action)
 
+
+##########################################################################################################
+
+def try_get_from_structure(structure: Dict, value_path: List[str], default_value: Any = None) -> Any:
+    if structure is None or len(structure) == 0:
+        return default_value
+
+    if len(value_path) == 1:
+        key = value_path.pop(0)
+        return structure.get(key, default_value)
+
+    else:
+        key = value_path.pop(0)
+        return try_get_from_structure(structure.get(key, {}), value_path, default_value)
+
+def try_get_first_non_null_from_structure(structure: Dict, value_paths: list[list[str]], default_value: Any = None) -> Any:
+    for value_path in value_paths:
+        value = try_get_from_structure(structure, value_path=value_path)
+        if value is not None:
+            return value
+    return default_value
+
+def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
+    """
+    Flattens a dictionary of dictionaries into a single-level dict with dot-separated keys.
+    Example: {'a': {'b': 1}} -> {'a.b': 1}
+    """
+    items = {}
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.update(flatten_dict(v, new_key, sep=sep))
+        else:
+            items[new_key] = v
+    return items
 
 ##########################################################################################################
 

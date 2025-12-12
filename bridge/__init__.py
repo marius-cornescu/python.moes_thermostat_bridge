@@ -8,9 +8,9 @@ from generic.dataclass_util import get_valid_dataclass_fields
 
 ##########################################################################################################
 
-
-MqttCallbackOnMessage = Callable[["Client", Any, Dict[str, Any]], None]
-TuyaCallbackOnAction = Callable[["Client", Any, Dict[str, Any]], None]
+# Callable [ <in arguments> = [ <self>, <parameter_1>, .... ], <out type> ]
+MqttCallbackOnMessage = Callable[["MqttClient", Dict[str, Any]], None]
+TuyaCallbackOnAction = Callable[["MoesBhtThermostat", Dict[str, Any]], None]
 
 
 ##########################################################################################################
