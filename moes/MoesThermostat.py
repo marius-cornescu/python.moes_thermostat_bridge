@@ -162,6 +162,8 @@ class MoesBhtThermostat(object):
 
         self.is_synchronized = False
 
+        self._in_synchronize_mutex = threading.Lock()
+
         self._callback_mutex = threading.RLock()
         self._in_callback_mutex = threading.Lock()
         self._on_callback: TuyaCallbackOnAction | None = None
@@ -269,21 +271,23 @@ class MoesBhtThermostat(object):
         state_data = dict_filter_none(state_data)
 
         if len(state_data) > 0:
-            current_state_backup = self.state_current.clone()
 
-            for state_field, v in state_data.items():
-                update_result = self.__process_data_update(state_field, v)
-                had_state_updates = had_state_updates or update_result
+            with self._in_synchronize_mutex:
+                current_state_backup = self.state_current.clone()
 
-            if had_state_updates and not self.state_current.__eq__(current_state_backup):
-                logging.getLogger(__name__).info(f'State for [{self.name}] updated from [{self.state_previous}] to [{self.state_current}]')
-                self.state_previous = current_state_backup
-                self._handle_on_state_changed()
+                for state_field, v in state_data.items():
+                    update_result = self.__process_data_update(state_field, v)
+                    had_state_updates = had_state_updates or update_result
 
-            elif self.full_status_publish_delay_seconds > time.time():
-                logging.getLogger(__name__).info(f'State REFRESH for [{self.name}] with state [{self.state_current}]')
-                self.full_status_publish_time = time.time() + self.full_status_publish_delay_seconds
-                self._handle_on_state_changed()
+                if had_state_updates and not self.state_current.__eq__(current_state_backup):
+                    logging.getLogger(__name__).info(f'State for [{self.name}] updated from [{self.state_previous}] to [{self.state_current}]')
+                    self.state_previous = current_state_backup
+                    self._handle_on_state_changed()
+
+                elif self.full_status_publish_delay_seconds > time.time():
+                    logging.getLogger(__name__).info(f'State REFRESH for [{self.name}] with state [{self.state_current}]')
+                    self.full_status_publish_time = time.time() + self.full_status_publish_delay_seconds
+                    self._handle_on_state_changed()
 
         return had_state_updates
 
