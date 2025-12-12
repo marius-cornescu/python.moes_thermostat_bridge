@@ -20,6 +20,7 @@ class Config:
 
     log_level_root: int
     log_level_app: int
+    log_level_app_bridge: int
     log_level_tuya: int
 
 ##########################################################################################################
@@ -30,6 +31,7 @@ class DEVConfig(Config):
 
     log_level_root = logging.DEBUG
     log_level_app = logging.DEBUG
+    log_level_app_bridge = logging.DEBUG
     log_level_tuya = logging.INFO
 
 ##########################################################################################################
@@ -40,6 +42,7 @@ class PRODConfig(Config):
 
     log_level_root = logging.WARNING
     log_level_app = logging.INFO
+    log_level_app_bridge = logging.INFO
     log_level_tuya = logging.WARNING
 
 ##########################################################################################################
@@ -61,7 +64,7 @@ class ActiveConfig(object):
         self.logging = None
         self.stdout = None
         self.stderr = None
-        self.azure_cli_out = None
+        self.cli_out = None
         self.progress = Progress()
 
     @staticmethod

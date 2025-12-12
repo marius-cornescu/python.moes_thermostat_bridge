@@ -29,6 +29,9 @@ class Tuya2MqttBridge(object):
     def start(self, max_iterations: int = 0):
         logging.getLogger(__name__).debug(f'Start Tuya[{self.tuya_device.name}] <=> Mqtt[{self.mqtt_client.name}] bridge')
 
+        from bridge import test
+        test()
+
         self.tuya_device.on_callback = self.from_tuya_callback
         self.mqtt_client.on_callback = self.from_mqtt_callback
 

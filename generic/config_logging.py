@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+from typing import Any, List, Optional, Dict
 import logging
 import sys
 from io import IOBase
 
 from .config import ActiveConfig
+
 
 ##########################################################################################################
 
@@ -72,6 +74,7 @@ def __create_console_handler(ac: ActiveConfig):
 
     return handler
 
+
 def __create_file_handler(ac: ActiveConfig):
     from datetime import datetime
 
@@ -100,17 +103,19 @@ def init_logging(ac: ActiveConfig):
 
     ac.logging.setLevel(ac.config.log_level_app)
 
-    app_logger_names = ['generic.progress']
-    for logger_name in app_logger_names:
-        logging.getLogger(logger_name).setLevel(ac.config.log_level_app)
+    set_log_level_for_all(['generic.progress'], ac.config.log_level_app)
+    set_log_level_for_all(['bridge', 'bridge.bridge'], ac.config.log_level_app_bridge)
+    set_log_level_for_all(['tinytuya', 'tinytuya.core', 'tinytuya.core.XenonDevice', 'tinytuya.core.crypto_helper',
+                           'tinytuya.core.message_helper', 'tinytuya.core.error_helper'], ac.config.log_level_tuya)
 
-    other_cli_logger_names = ['tinytuya', 'tinytuya.core', 'tinytuya.core.XenonDevice', 'tinytuya.core.crypto_helper', 'tinytuya.core.message_helper', 'tinytuya.core.error_helper']
-    for logger_name in other_cli_logger_names:
-        logging.getLogger(logger_name).setLevel(ac.config.log_level_tuya)
-
-    ac.azure_cli_out = LoggerWriter('azure_cli_out', logging.DEBUG, ac.app_name)
+    ac.cli_out = LoggerWriter('cli_out', logging.DEBUG, ac.app_name)
 
     __replace_stderr_and_stdout_with_logger(ac)
 
     return ac.logging
 
+def set_log_level_for_all(app_logger_names: List[str], log_level: int):
+    for logger_name in app_logger_names:
+        logging.getLogger(logger_name).setLevel(log_level)
+
+##########################################################################################################
