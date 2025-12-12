@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Callable
 import sys
 import signal
 import atexit
@@ -67,6 +67,8 @@ def try_get_first_non_null_from_structure(structure: Dict, value_paths: list[lis
             return value
     return default_value
 
+##########################################################################################################
+
 def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
     """
     Flattens a dictionary of dictionaries into a single-level dict with dot-separated keys.
@@ -83,3 +85,21 @@ def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
 
 ##########################################################################################################
 
+def dict_map_keys(original_dict, key_mapping_func: Callable):
+    mapped_dict = {}
+    for key, value in original_dict.items():
+        try:
+            new_key = key_mapping_func(key)
+            if new_key is not None:
+                mapped_dict[new_key] = value
+        except Exception:
+            continue
+    return mapped_dict
+
+##########################################################################################################
+
+def dict_filter_none(d: dict[str, Any]) -> dict[str, Any]:
+    """Make dict excluding None values."""
+    return {k: v for k, v in d.items() if v is not None}
+
+##########################################################################################################

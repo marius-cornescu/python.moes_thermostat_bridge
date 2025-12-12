@@ -11,7 +11,7 @@ import copy
 
 from tinytuya import Contrib
 
-from generic import try_get_from_structure
+from generic import try_get_from_structure, dict_map_keys, dict_filter_none
 from generic.dataclass_util import get_valid_dataclass_fields
 from bridge import TuyaCallbackOnAction
 
@@ -44,6 +44,17 @@ MOES_ECO_MODE_ENABLED = 5
 MOES_LOCK_ENABLED = 6
 
 MOES_TEMPERATURE_SCALE = 2
+
+MOES_METRIC_MAP = {
+    MOES_POWER_STATUS: 'is_on',
+    MOES_TARGET_TEMPERATURE: 'target_temperature',
+    MOES_MEASURED_TEMPERATURE: 'home_temperature',
+    MOES_OPERATING_MODE: 'manual_operating_mode',
+    MOES_ECO_MODE_ENABLED: 'eco_mode',
+    MOES_LOCK_ENABLED: 'lock_enabled',
+    102: None,
+    104: None,
+}
 
 ##########################################################################################################
 @dataclass
@@ -80,15 +91,18 @@ class MoesBhtThermostat(object):
     state_current: ThermostatState
     state_previous: ThermostatState
 
-    # delay between when a new full status should be sent, even if in sync
-    full_status_delay_s: int = 5 * 60
+    # delay between when a new full status should be retrieved, even if in sync
+    full_status_get_delay_seconds: int = 5 * 60
+    # delay between when a new full status should be published
+    full_status_publish_delay_seconds: int = 10 * 60
 
     is_synchronized: Optional[bool] = False
 
     ping_time: Optional[float] = None
 
     # when should next full status be sent
-    full_status_time: Optional[float] = None
+    full_status_get_time: Optional[float] = None
+    full_status_publish_time: Optional[float] = None
 
     def __init__(self, name: str, tuya_id: str, local_ip: str, tuya_local_key: str,
                  device: Contrib.ThermostatDevice | None = None):
@@ -140,7 +154,8 @@ class MoesBhtThermostat(object):
         logging.getLogger(__name__).info(f"Start monitoring [{self.name}] for [x{max_iterations}]")
 
         self.ping_time = self._next_ping_time()
-        self.full_status_time = time.time() + self.full_status_delay_s
+        self.full_status_get_time = time.time() + self.full_status_get_delay_seconds
+        self.full_status_publish_time = time.time() + self.full_status_publish_delay_seconds
 
         iteration = 1
 
@@ -185,11 +200,11 @@ class MoesBhtThermostat(object):
     def _get_data(self, all_data: bool = False) -> Dict:
         logging.getLogger(__name__).debug(f'Get data(all_data={all_data}) | [is_synchronized={self.is_synchronized}]')
 
-        if self.is_synchronized and not all_data and self.full_status_time > time.time():
+        if self.is_synchronized and not all_data and self.full_status_get_time > time.time():
             data = self.device.receive()
         else:
             data = self.device.status()
-            self.full_status_time = time.time() + self.full_status_delay_s
+            self.full_status_get_time = time.time() + self.full_status_get_delay_seconds
 
         if data is not None and 'Error' in data:
             self.is_synchronized = False
@@ -198,81 +213,96 @@ class MoesBhtThermostat(object):
         return data
 
     def _process_raw_data_updates(self, data: Dict) -> bool:
-        logging.getLogger(__name__).debug(f'Processing updates from [{self.name}] with data=[{data}] | [is_synchronized={self.is_synchronized}]')
+        logging.getLogger(__name__).debug(f'Processing updates for [{self.name}] with data=[{data}] | [is_synchronized={self.is_synchronized}]')
 
         had_state_updates = False
 
         dps_data = try_get_from_structure(data, ['dps'])
 
         if dps_data is not None:
-            had_state_updates = self._process_data_updates(dps_data)
+            state_data = dict_map_keys(dps_data, self._map_dps_metric_to_state)
+            had_state_updates = self._process_data_updates(state_data)
         else:
             logging.getLogger(__name__).debug('No DPS data available')
 
-        logging.getLogger(__name__).debug(f'Processed updates from [{self.name}] => had_state_updates=[{had_state_updates}]')
+        logging.getLogger(__name__).debug(f'Processed updates for [{self.name}] => had_state_updates=[{had_state_updates}]')
         return had_state_updates
 
-    def _process_data_updates(self, dps_data: Dict) -> bool:
-        logging.getLogger(__name__).debug(f'Processing updates from [{self.name}] with data=[{dps_data}] | [is_synchronized={self.is_synchronized}]')
+    def _process_data_updates(self, state_data: Dict[str, Any]) -> bool:
+        logging.getLogger(__name__).debug(f'Processing updates for [{self.name}] with data=[{state_data}] | [is_synchronized={self.is_synchronized}]')
         had_state_updates = False
 
-        current_state_backup = self.state_current.clone()
+        state_data = dict_filter_none(state_data)
 
-        for k, v in dps_data.items():
-            metric_id = int(k)
-            update_result = self._process_data_update(metric_id, v)
-            had_state_updates = had_state_updates or update_result
+        if len(state_data) > 0:
+            current_state_backup = self.state_current.clone()
 
-        if had_state_updates and not self.state_current.__eq__(current_state_backup):
-            logging.getLogger(__name__).info(f'State for [{self.name}] updated from [{self.state_previous}] to [{self.state_current}]')
-            self.state_previous = current_state_backup
-            self._handle_on_state_changed()
+            for state_field, v in state_data.items():
+                update_result = self._process_data_update(state_field, v)
+                had_state_updates = had_state_updates or update_result
+
+            if had_state_updates and not self.state_current.__eq__(current_state_backup):
+                logging.getLogger(__name__).info(f'State for [{self.name}] updated from [{self.state_previous}] to [{self.state_current}]')
+                self.state_previous = current_state_backup
+                self._handle_on_state_changed()
+
+            elif self.full_status_publish_delay_seconds > time.time():
+                logging.getLogger(__name__).info(f'State REFRESH for [{self.name}] with state [{self.state_current}]')
+                self.full_status_publish_time = time.time() + self.full_status_publish_delay_seconds
+                self._handle_on_state_changed()
 
         return had_state_updates
 
-    def _process_data_update(self, metric_id: int, metric_value: str) -> bool:
-        logging.getLogger(__name__).debug(f'Processing update from [{self.name}] to metric=[{metric_id}] value=[{metric_value}]')
+    @staticmethod
+    def _map_dps_metric_to_state(dps_metric_id: str) -> str|None:
+        try:
+            return MOES_METRIC_MAP.get(int(dps_metric_id), None)
+        except Exception as e:
+            logging.getLogger(__name__).error(f'Exception while _map_dps_metric_to_state [{dps_metric_id}]: [%s]', e)
+            if logging.getLogger(__name__).isEnabledFor(logging.ERROR):
+                traceback.print_exc()
+
+        return None
+
+    def _process_data_update(self, state_field: str, metric_value: str) -> bool:
+        logging.getLogger(__name__).debug(f'Processing update for [{self.name}] to metric=[{state_field}] value=[{metric_value}]')
 
         if metric_value is None:
-            logging.getLogger(__name__).warning(f'Failed to process update from [{self.name}] to metric=[{metric_id}] value=[{metric_value}]. Null value.')
+            logging.getLogger(__name__).warning(f'Failed to process update for [{self.name}] to metric=[{state_field}] value=[{metric_value}]. Null value.')
             return False
 
-        if metric_id == MOES_POWER_STATUS:
+        if state_field == 'is_on':
             logging.getLogger(__name__).debug(f'POWER_STATUS = [{metric_value}]')
             self.state_current.is_on = bool(metric_value)
             logging.getLogger(__name__).info(f'is_on is [{self.state_current.is_on}]')
 
-        elif metric_id == MOES_TARGET_TEMPERATURE:
+        elif state_field == 'target_temperature':
             logging.getLogger(__name__).debug(f'TARGET_TEMPERATURE = [{metric_value}]')
             self.state_current.target_temperature = round(int(metric_value) / MOES_TEMPERATURE_SCALE, 1)
             logging.getLogger(__name__).info(f'target_temperature is [{self.state_current.target_temperature}]')
 
-        elif metric_id == MOES_MEASURED_TEMPERATURE:
+        elif state_field == 'home_temperature':
             logging.getLogger(__name__).debug(f'MEASURED_TEMPERATURE = [{metric_value}]')
             self.state_current.home_temperature = round(int(metric_value) / MOES_TEMPERATURE_SCALE, 1)
             logging.getLogger(__name__).info(f'home_temperature is [{self.state_current.home_temperature}]')
 
-        elif metric_id == MOES_OPERATING_MODE:
+        elif state_field == 'manual_operating_mode':
             logging.getLogger(__name__).debug(f'OPERATING_MODE = [{metric_value}]')
             self.state_current.manual_operating_mode = (metric_value == '1')
             logging.getLogger(__name__).info(f'manual_operating_mode is [{self.state_current.manual_operating_mode}]')
 
-        elif metric_id == MOES_ECO_MODE_ENABLED:
+        elif state_field == 'eco_mode':
             logging.getLogger(__name__).debug(f'ECO_MODE_ENABLED = [{metric_value}]')
             self.state_current.eco_mode = bool(metric_value)
             logging.getLogger(__name__).info(f'eco_mode is [{self.state_current.eco_mode}]')
 
-        elif metric_id == MOES_LOCK_ENABLED:
+        elif state_field == 'lock_enabled':
             logging.getLogger(__name__).debug(f'LOCK_ENABLED = [{metric_value}]')
             self.state_current.lock_enabled = bool(metric_value)
             logging.getLogger(__name__).info(f'lock_enabled is [{self.state_current.lock_enabled}]')
 
-        elif metric_id == 102 or metric_id == 104:
-            logging.getLogger(__name__).debug(f'IGNORE UNUSED: [{metric_id}]=[{metric_value}]')
-            return False
-
         else:
-            logging.getLogger(__name__).warning(f'Unknown metric from [{self.name}]: metric=[{metric_id}] value=[{metric_value}].')
+            logging.getLogger(__name__).warning(f'Unknown metric for [{self.name}]: metric=[{state_field}] value=[{metric_value}].')
             return False
 
         return True
@@ -300,6 +330,13 @@ class MoesBhtThermostat(object):
     def on_callback(self, func: TuyaCallbackOnAction | None) -> None:
         with self._callback_mutex:
             self._on_callback = func
+
+    def set_state(self, new_state: ThermostatState) -> ThermostatState:
+        logging.getLogger(__name__).info(f"Set [{self.name}] [state] to [{new_state}]")
+
+        self._process_data_updates(new_state.__dict__)
+
+        return self.state_current
 
     def turn_on(self):
         self.set_is_on(True)

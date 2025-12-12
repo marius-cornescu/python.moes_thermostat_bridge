@@ -8,7 +8,6 @@ import re
 import generic.config as config
 from generic.config_logging import init_logging
 from generic.json_encoders import DataClassJsonEncoder
-from bridge import BridgeData
 
 from tinytuya.Contrib import ThermostatDevice
 
@@ -39,43 +38,6 @@ def mock_tuya_device(mocker) -> ThermostatDevice:
 
 
 # ***************************************************************************************
-@pytest.mark.parametrize('json_message, expected_object', [
-    ('{}',
-     '{ "is_on": null, "target_temperature": null, "home_temperature": null, "manual_operating_mode": null, "eco_mode": null, "lock_enabled": null }'),
 
-    ('{"test": 0}',
-     '{ "is_on": null, "target_temperature": null, "home_temperature": null, "manual_operating_mode": null, "eco_mode": null, "lock_enabled": null }'),
-
-    ('{"is_on": "Some value"}',
-     '{ "is_on": null, "target_temperature": null, "home_temperature": null, "manual_operating_mode": null, "eco_mode": null, "lock_enabled": null }'),
-
-    ('{"is_on": true}',
-     '{ "is_on": true, "target_temperature": null, "home_temperature": null, "manual_operating_mode": null, "eco_mode": null, "lock_enabled": null }'),
-
-    (('{'
-      '"is_on": true, '
-      '"target_temperature": 20.5, '
-      '"home_temperature": 19.5, '
-      '"manual_operating_mode": false, '
-      '"eco_mode": false, '
-      '"lock_enabled": false'
-      '}'),
-     '{ "is_on": true, "target_temperature": 20.5, "home_temperature": 19.5, "manual_operating_mode": false, "eco_mode": false, "lock_enabled": false }'),
-])
-def test_mapping_json_to_test_data(json_message, expected_object):
-    # given
-    test_data = json.loads(json_message)
-
-    # when
-    bridge_data = BridgeData.from_json(test_data)
-
-    # then
-    json_text = json.dumps(bridge_data, indent=4, cls=DataClassJsonEncoder)
-    print(json_text)
-
-    assert bridge_data
-    sanitized_json_text = json_text.replace('\n', ' ')
-    sanitized_json_text = re.sub(r' +', ' ', sanitized_json_text)
-    assert sanitized_json_text == expected_object
 
 # ***************************************************************************************

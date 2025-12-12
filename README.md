@@ -73,8 +73,25 @@ Notes:
 - Venvs are created at image build time at `/opt/venvs/dev` and `/opt/venvs/prod`. Add packages to `requirements.txt` before building to have them installed into both venvs.
 
 
+### Container health probe
 
+```yaml
+services:
+  myapp:
+    image: rtzan/thermostat_2_mqtt_bridge
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import sys; sys.exit(0 if open(\"/tmp/healthy\").read().strip() == \"ok\" else 1)'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+```
 
+```python
+# Write a heartbeat file
+with open("/tmp/healthy", "w") as f:
+    f.write("ok")
+```
 
 
 

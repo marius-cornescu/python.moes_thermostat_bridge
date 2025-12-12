@@ -11,7 +11,6 @@ from paho.mqtt.enums import MQTTErrorCode
 import paho.mqtt.client as mqtt
 
 from bridge import MqttCallbackOnMessage
-from bridge import BridgeData
 
 
 ##########################################################################################################

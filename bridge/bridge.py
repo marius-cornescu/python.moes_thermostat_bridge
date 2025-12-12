@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 
 from generic import register_on_exit_action
-from moes.MoesThermostat import MoesBhtThermostat
+from moes.MoesThermostat import MoesBhtThermostat, ThermostatState
 from mqtt.mqtt_server import MqttClient
 
 ##########################################################################################################
@@ -39,27 +39,15 @@ class Tuya2MqttBridge(object):
         self.tuya_device.start_monitoring(max_iterations=max_iterations)
         # Tuya monitoring uses the main thread
 
-    def to_tuya_callback(self, user_data: Any, data: Dict[str, Any]):
-        logging.getLogger(__name__).warning(f'Received action for Tuya device [{self.tuya_device.name}] data=[{data}]')
-
-        # FIXME: verify with the synced state and if update required, call specific method on tuya device
-
     def from_tuya_callback(self, user_data: Any, data: Dict[str, Any]):
         logging.getLogger(__name__).warning(f'Received action from Tuya device [{self.tuya_device.name}] data=[{data}]')
 
         self.mqtt_client.publish_state(data)
 
-        # FIXME: call publish to mqtt topic
-
-    def to_mqtt_callback(self, user_data: Any, data: Dict[str, Any]):
-        logging.getLogger(__name__).warning(f'Received action for Mqtt service [{self.mqtt_client.name}] data=[{data}]')
-        # FIXME: ??
-
     def from_mqtt_callback(self, user_data: Any, data: Dict[str, Any]):
         logging.getLogger(__name__).warning(f'Received action from Mqtt service [{self.mqtt_client.name}] data=[{data}]')
 
-        if 'manual_operating_mode' in data:
-            new_mode = data['manual_operating_mode'] == True
-            self.tuya_device.set_manual_operating_mode(new_mode)
+        # remove readonly params
+        data.pop('home_temperature')
 
-        # FIXME: ??
+        self.tuya_device.set_state(ThermostatState.from_json(data))
