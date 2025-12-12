@@ -62,7 +62,7 @@ class ThermostatState(object):
     is_on: Optional[bool] = None
     target_temperature: Optional[float] = None
     home_temperature: Optional[float] = None
-    manual_operating_mode: Optional[int] = None
+    manual_operating_mode: Optional[bool] = None
     eco_mode: Optional[bool] = None
     lock_enabled: Optional[bool] = None
 
@@ -119,7 +119,7 @@ class MoesBhtThermostat(object):
             is_on=False,
             target_temperature=0.0,
             home_temperature=0.0,
-            manual_operating_mode=0,
+            manual_operating_mode=False,
             eco_mode=False,
             lock_enabled=False
         )
@@ -220,7 +220,7 @@ class MoesBhtThermostat(object):
         dps_data = try_get_from_structure(data, ['dps'])
 
         if dps_data is not None:
-            state_data = dict_map_keys(dps_data, self._map_dps_metric_to_state)
+            state_data = dict_map_keys(dps_data, self.__map_dps_metric_to_state)
             had_state_updates = self._process_data_updates(state_data)
         else:
             logging.getLogger(__name__).debug('No DPS data available')
@@ -238,12 +238,13 @@ class MoesBhtThermostat(object):
             current_state_backup = self.state_current.clone()
 
             for state_field, v in state_data.items():
-                update_result = self._process_data_update(state_field, v)
+                update_result = self.__process_data_update(state_field, v)
                 had_state_updates = had_state_updates or update_result
 
             if had_state_updates and not self.state_current.__eq__(current_state_backup):
                 logging.getLogger(__name__).info(f'State for [{self.name}] updated from [{self.state_previous}] to [{self.state_current}]')
                 self.state_previous = current_state_backup
+                self._apply_state_change()
                 self._handle_on_state_changed()
 
             elif self.full_status_publish_delay_seconds > time.time():
@@ -254,7 +255,7 @@ class MoesBhtThermostat(object):
         return had_state_updates
 
     @staticmethod
-    def _map_dps_metric_to_state(dps_metric_id: str) -> str|None:
+    def __map_dps_metric_to_state(dps_metric_id: str) -> str | None:
         try:
             return MOES_METRIC_MAP.get(int(dps_metric_id), None)
         except Exception as e:
@@ -264,7 +265,7 @@ class MoesBhtThermostat(object):
 
         return None
 
-    def _process_data_update(self, state_field: str, metric_value: str) -> bool:
+    def __process_data_update(self, state_field: str, metric_value: str) -> bool:
         logging.getLogger(__name__).debug(f'Processing update for [{self.name}] to metric=[{state_field}] value=[{metric_value}]')
 
         if metric_value is None:
@@ -306,6 +307,18 @@ class MoesBhtThermostat(object):
             return False
 
         return True
+
+    def _apply_state_change(self) -> None:
+        if self.state_previous.is_on != self.state_current.is_on:
+            self.set_is_on(self.state_current.is_on)
+        if self.state_previous.target_temperature != self.state_current.target_temperature:
+            self.set_target_temperature(self.state_current.target_temperature)
+        if self.state_previous.manual_operating_mode != self.state_current.manual_operating_mode:
+            self.set_manual_operating_mode(self.state_current.manual_operating_mode)
+        if self.state_previous.eco_mode != self.state_current.eco_mode:
+            self.set_eco_mode(self.state_current.eco_mode)
+        if self.state_previous.lock_enabled != self.state_current.lock_enabled:
+            self.set_lock_enabled(self.state_current.lock_enabled)
 
     def _handle_on_state_changed(self) -> None:
         with self._callback_mutex:
@@ -392,7 +405,7 @@ class MoesBhtThermostat(object):
         self.state_current.eco_mode = eco_mode
         logging.getLogger(__name__).info(f"Set [{self.name}] [eco_mode] to [{self.state_current.eco_mode}]")
 
-    def set_lock(self, lock_enabled: bool):
+    def set_lock_enabled(self, lock_enabled: bool):
         logging.getLogger(__name__).info(f"Setting [{self.name}] lock mode [{'ON' if lock_enabled else 'OFF'}]")
         self.device.set_value(MOES_LOCK_ENABLED, lock_enabled)
 
