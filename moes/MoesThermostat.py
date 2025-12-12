@@ -89,8 +89,8 @@ class MoesBht002Thermostat(Contrib.ThermostatDevice):
         f'{__OPERATING_MODE}':      {'name': 'manual_operating_mode', 'enum': ['0','1']},
         f'{__ECO_MODE}':            {'name': 'eco_mode', 'decode': bool},
         f'{__LOCK_ENABLED}':        {'name': 'lock_enabled', 'decode': bool},
-        f'{__IGNORE_METRIC1}':      {'name': 'ignore_1'},
-        f'{__IGNORE_METRIC2}':      {'name': 'ignore_2'}
+        f'{__IGNORE_METRIC1}':      {'name': 'ignore_1', 'decode': int},
+        f'{__IGNORE_METRIC2}':      {'name': 'ignore_2', 'decode': bool}
     }
 
     def __init__(self, *args, **kwargs):
