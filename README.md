@@ -97,6 +97,21 @@ docker run --rm -e "BRIDGE_TARGET_ENV=prod" -p 18000:18000 rtzan/thermostat_2_mq
 
 ### Build Container
 
+#### Update IOT container
+
+```shell
+git restore .
+
+git pull --all
+
+docker build -t rtzan/thermostat_2_mqtt_bridge:1.0.0 -f Dockerfile .
+
+docker compose -f docker-compose.yml create
+
+docker network connect iotstack_default thermostat_2_mqtt_bridge
+```
+
+
 Build + run with docker-compose:
 ```shell
 docker compose -f docker-compose.yml up
