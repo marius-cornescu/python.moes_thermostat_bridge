@@ -1,6 +1,6 @@
 # Introduction
-This repository contains a small utility to interact with local Tuya-based thermostats.
-The main purpose is to publish and control a tuya based Moe's BHT-002 GALW Thermostat via mqtt, while keeping the Tuya Cloud connection (not using cloud cutter) 
+This repository contains a utility application capable of running in a docker pod, designed to interact with local Tuya-based thermostats and integrate them with an MQTT server.
+The main purpose is to publish and control a tuya based Moe's BHT-002 GALW Thermostat via mqtt, while keeping the Tuya Cloud connection (not using cloud-cutter).
 
 # High Level Design
 
@@ -22,7 +22,8 @@ flowchart LR
   end
     U -- Tuya App --> I{{"Internet"}}
     U --> TH
-    BR -. "a.1 poll for updates" .-> TH
+    BR -. "a.1a poll for updates" .-> TH
+    TH -- "a.1b send updates" --> BR
     BR -. "a.2 publish state to topic" .-> S
     BR -- "b.1 listen on topic" --> S
     BR -- "b.2 publish action" --> TH
@@ -42,9 +43,21 @@ flowchart LR
 
 ---
 
-## SETUP
+# Debugging and Observations
+
+* The communication to the device breaks up sometimes, some commands seem to result in the device breaking connection for up to a minute.
+* The "BHT-002" device has various quirks, there is no update sent by the device when eco mode is switched on (hence, I'm polling for a full status update every minute; there the info is updated)
+
+
+
+## SETUP / Get tuya device credentials and identification
 
 Based on the TinyTuya project: https://github.com/jasonacox/tinytuya
+You can connect directly to the api exposed by a Tuya device directly from your local network. The communication runs on the private network only, but the credentials are pushed and managed by the tuya cloud solution.
+So, you still need to create an account and retrieve the credentials from the Tuya cloud solution.
+
+Tiny-Tuya offers the utilities to get the identification of your device. In some cases, if you already tried to connect your thermostat device to HomeAssistant, most of the setup steps have been done already (setting up the account and application in Tuya Cloud).
+It took me about 15 minutes to finish the setup and be abel to connect to the device.
 
 ```powershell
 python -m tinytuya scan
