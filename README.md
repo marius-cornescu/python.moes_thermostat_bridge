@@ -11,7 +11,7 @@ flowchart LR
  subgraph LN["Local Private Network"]
         U(("User"))
         TH("Thermostat")
-        BR[["Bridge App"]]
+        BR[["Bridge App<br>'docker container'"]]
         S["Mqtt Server"]
   end
  subgraph PC["Tuya Cloud"]
