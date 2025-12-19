@@ -8,25 +8,35 @@ The main purpose is to publish and control a tuya based Moe's BHT-002 GALW Therm
 
 ```mermaid
 flowchart LR
+ subgraph LN2[" "]
+        S["Mqtt Server"]
+        TH("Thermostat")
+        BR[["Bridge App"]]
+  end
  subgraph LN["Local Private Network"]
         U(("User"))
-        TH("Thermostat")
-        BR[["Bridge App<br>'docker container'"]]
-        S["Mqtt Server"]
+        LN2
   end
  subgraph PC["Tuya Cloud"]
         TUYA_CLOUD[("Tuya Services")]
   end
-
-    TH <-.-> BR <-.-> S
+    U -- Tuya App --> I{{"Internet"}}
     U --> TH
-    TH <-.-> I{{"Internet"}}
+    BR -. "a.1 poll for updates" .-> TH
+    BR -. "a.2 publish state to topic" .-> S
+    BR -- "b.1 listen on topic" --> S
+    BR -- "b.2 publish action" --> TH
+    TH <-.-> I
     I <-.-> TUYA_CLOUD & TUYA_CLOUD
-    U -- Tuya App --> I
 
     style BR fill:#FFAEAB
+    style LN2 fill:#C8E6C9
     style I fill:#FFFFFF
     style PC fill:#BBDEFB
+    linkStyle 2 stroke:#00C853
+    linkStyle 3 stroke:#00C853,fill:none
+    linkStyle 4 stroke:#AA00FF,fill:none
+    linkStyle 5 stroke:#AA00FF,fill:none
 
 ```
 
