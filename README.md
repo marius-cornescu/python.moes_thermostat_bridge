@@ -12,13 +12,10 @@ flowchart LR
         S("Mqtt Server")
         BR("Bridge App")
   end
- subgraph BRIDGE[" "]
-        DOCKER
-        TH[["Thermostat"]]
-  end
  subgraph LN["Local Private Network"]
         U(("User"))
-        BRIDGE
+        TH[["Thermostat"]]
+        DOCKER
   end
  subgraph PC["Tuya Cloud"]
         TUYA_CLOUD[("Tuya Services")]
@@ -33,7 +30,7 @@ flowchart LR
     I <-.-> TUYA_CLOUD & TUYA_CLOUD
 
     style BR fill:#FFAEAB
-    style BRIDGE fill:#C8E6C9
+    style DOCKER fill:#C8E6C9
     style I fill:#FFFFFF
     style PC fill:#BBDEFB
     linkStyle 2 stroke:#00C853
