@@ -2,6 +2,35 @@
 This repository contains a small utility to interact with local Tuya-based thermostats.
 The main purpose is to publish and control a tuya based Moe's BHT-002 GALW Thermostat via mqtt, while keeping the Tuya Cloud connection (not using cloud cutter) 
 
+# High Level Design
+
+---
+
+```mermaid
+flowchart LR
+ subgraph LN["Local Private Network"]
+        U(("User"))
+        TH("Thermostat")
+        BR[["Bridge App"]]
+        S["Mqtt Server"]
+  end
+ subgraph PC["Tuya Cloud"]
+        TUYA_CLOUD[("Tuya Services")]
+  end
+
+    TH <-.-> BR <-.-> S
+    U --> TH
+    TH <-.-> I{{"Internet"}}
+    I <-.-> TUYA_CLOUD & TUYA_CLOUD
+    U -- Tuya App --> I
+
+    style BR fill:#FFAEAB
+    style I fill:#FFFFFF
+    style PC fill:#BBDEFB
+
+```
+
+---
 
 ## SETUP
 
