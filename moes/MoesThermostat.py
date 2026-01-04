@@ -139,6 +139,8 @@ class MoesBhtThermostat(object):
     full_status_get_time: Optional[float] = None
     full_status_publish_time: Optional[float] = None
 
+    is_connection_lost: bool = False
+
     def __init__(self, name: str, tuya_id: str, local_ip: str, tuya_local_key: str,
                  device: MoesBht002Thermostat | None = None):
         self.name = name
@@ -211,9 +213,13 @@ class MoesBhtThermostat(object):
             data = self._get_data()
             if data and 'Error' not in data:
                 had_state_updates = self._process_raw_data_updates(data)
+                self.__set_connection_restored()
 
                 if had_state_updates and not self.is_synchronized:
                     self.is_synchronized = True
+
+            else:
+                self.__set_connection_lost()
 
             iteration = self._increment_iteration(iteration, data)
 
@@ -439,3 +445,14 @@ class MoesBhtThermostat(object):
         self.state_previous = self.state_current.clone()
         self.state_current.lock_enabled = lock_enabled
         logging.getLogger(__name__).info(f"Set [{self.name}] [lock_enabled] to [{self.state_current.lock_enabled}]")
+
+
+    def __set_connection_lost(self):
+        if not self.is_connection_lost:
+            self.is_connection_lost = True
+            logging.getLogger(__name__).warning(f'Connection: Lost')
+
+    def __set_connection_restored(self):
+        if self.is_connection_lost:
+            self.is_connection_lost = False
+            logging.getLogger(__name__).warning(f'Connection: Restored')
