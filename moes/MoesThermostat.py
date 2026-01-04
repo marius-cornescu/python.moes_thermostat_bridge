@@ -211,15 +211,16 @@ class MoesBhtThermostat(object):
                 self.ping_time = self._next_ping_time()
 
             data = self._get_data()
-            if data and 'Error' not in data:
-                had_state_updates = self._process_raw_data_updates(data)
-                self.__set_connection_restored()
+            if data:
+                if 'Error' not in data:
+                    had_state_updates = self._process_raw_data_updates(data)
+                    self.__set_connection_restored()
 
-                if had_state_updates and not self.is_synchronized:
-                    self.is_synchronized = True
+                    if had_state_updates and not self.is_synchronized:
+                        self.is_synchronized = True
 
-            else:
-                self.__set_connection_lost()
+                else:
+                    self.__set_connection_lost()
 
             iteration = self._increment_iteration(iteration, data)
 
